@@ -1,0 +1,62 @@
+wsense - Wireless Weight Sensor
+
+Brief Description:
+The basic idea is being able to log the force applied to a platform for long periods of time, and save the data for further analysis.
+
+To accomplish this goal; simpler, more specific goals are needed:
+- A easy to use interface for on-the-site measuments and calibration. This is accomplished setting up a network, a HTTP server, and hosting a simple site.
+- A way to know the current time offline so that each measument can be associated to a particular time. This is accomplished by having an external RTC with a backup battery.
+- An easy way to save all the data and extract it without having to take the whole system offline for an extended period of time. This is achieved by using an SD card.
+
+An ESP8266 project using a nodeMCU platform custom build and a script to control an ds1307 RTC module, a load cell via a hx711 adc,
+and a SD card for external logging.
+
+
+Installation:
+- This project uses a specific set of nodeMCU standard modules: file,hx711,i2c,net,node,spi,tmr,uart,wifi, and FATfs support.
+- A custom build can be used, which contains this modules, or just use the one already built, available in the repository.
+- The only lua script required to be loaded is 'wsense.lua' as it contains all the program.
+- An additional script named as 'init.lua' should be added to load the script after reset.
+
+How to use:
+- After loading the scripts, the first thing to do is to calibrate the load cell. To do this, you need to access the 'WSENSE' network created by ESP8266.
+- Enter to the website hosted at 192.168.1.1.
+- you'll see two readings on top, the first one from the left is the 'converted' value, and the second one is the actual raw value coming from the hx711.
+- Weight two known objects and enter the data into the textboxes in the following order:
+
+    --------------
+    |1st   |1st   |
+    |weight|rawval|
+    |------|------|
+    |2nd   |2nd   |
+    |weight|rawval|
+    --------------
+ 
+- After all the values are there, click on 'Calibrate' and wait for the page to load again. The load is calibrated now and you can start using it.
+- The calibration values are saved into internal memory so resetting the device or powering down won't change them, only by overwriting them you can delete old ones.
+
+Logging:
+- The logging functionality is (for now) integral to the rest of the system, and by that I mean that if by any reason it's not possible to save data on the SD
+  (no SD, corrupted SD, whatever..) at any time, the rest of the system will work in an unexpected manner. be prepared for that.
+- The logging occurs only on the SD, there's no easy way to start saving data on system memory (except by modifying the lua script, which is easy as well).
+- Each time the script is run (after a reboot, or a hard reset), a new file is created in which all the data of that session will be stored.
+- The naming of these scripts follows (for now) this structure: <prefix><index(3)><month(2)><date(2)><hour(2)><minute(2)> which are:
+  prefix: a string taken from a file named 'PREFIX' in the system memory. The file is not needed and an empty string will be used instead if not found.
+  index: a string taken from a file name <NEXTINDEX> in the system memory. This file will be generated automatically by the script if not found, and set as '1',
+         and after each session it will get autoincremented. its range is from 0..999.
+  month: the current month: 01..12.
+  date: the current day of the month: 01..31.
+  hour: the current hour of the day: 00..23.
+  minute: the current minute: 0..59
+- to create a PREFIX or NEXTNUMBER file, there are no 'easy' ways to do it. you'll need to create one directly on the lua interpreter or by creating a script.
+- all the system time is made available by the RTC. However, this RTC has to be set with the right time first, and there NO easy way to do it for now.
+- Saving the logfiles this way makes for a useful timestamp feature, because each file has in its name its starting log time, and each measurement is taken at at
+  rate of 1Sample/second so tracking the measurement time is trivial.
+
+Hardware Info:
+HX711:
+To connect a load cell
+E+ - red
+E- - black
+A- - white
+A+ - green

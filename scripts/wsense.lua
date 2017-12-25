@@ -29,6 +29,17 @@ function ls(dir)
 	file.chdir('/FLASH')
 end
 
+function cat(fp)
+  f = file.open(fp,"r")
+  if not f then
+    return false
+  else
+    print(f:read())
+    f:close()
+    return true
+  end
+end
+
 -- html server functions
 function htmlServerInit()
 -- setup website

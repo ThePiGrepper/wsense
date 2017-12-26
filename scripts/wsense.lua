@@ -1,5 +1,5 @@
 -- hx711 config
-hx711_scl = 3 -- 4 for wemos D2 mini
+hx711_scl = 4
 hx711_sda = 0
 
 -- I2C config

@@ -19,14 +19,14 @@ function trim(s)
 end
 
 function ls(dir)
-	if dir == "flash" then
-		file.chdir('/SD0')
-	end
-	l = file.list();
-	for k,v in pairs(l) do
-		print("name:"..k..", size:"..v)
-	end
-	file.chdir('/FLASH')
+  if dir == "flash" then
+    file.chdir('/SD0')
+  end
+  l = file.list();
+  for k,v in pairs(l) do
+    print("name:"..k..", size:"..v)
+  end
+  file.chdir('/FLASH')
 end
 
 function cat(fp)
@@ -43,35 +43,35 @@ end
 -- html server functions
 function htmlServerInit()
 -- setup website
-	cfg =
-	{
-			ip="192.168.1.1",
-			netmask="255.255.255.0",
-			gateway="192.168.1.1"
-	}
-	html_p = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><title>Status</title></head><body><h1>Current Load (in converted|RAW): %d|%d </h1><form action="" method="post"><table><tr><td><button name="foo" value="bar">Calibrate</button></td></tr><tr><td>Point A:</td><td><input type="text" name="cal1a" value="%d"></td><td><input type="text" name="cal1b" value="%d"></td></tr><tr><td>Point B:</td><td><input type="text" name="cal2a" value="%d"></td><td><input type="text" name="cal2b" value="%d"></td></tr></table></form></body></html>'
+  cfg =
+  {
+      ip="192.168.1.1",
+      netmask="255.255.255.0",
+      gateway="192.168.1.1"
+  }
+  html_p = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><title>Status</title></head><body><h1>Current Load (in converted|RAW): %d|%d </h1><form action="" method="post"><table><tr><td><button name="foo" value="bar">Calibrate</button></td></tr><tr><td>Point A:</td><td><input type="text" name="cal1a" value="%d"></td><td><input type="text" name="cal1b" value="%d"></td></tr><tr><td>Point B:</td><td><input type="text" name="cal2a" value="%d"></td><td><input type="text" name="cal2b" value="%d"></td></tr></table></form></body></html>'
 
-	wifi.setmode(wifi.SOFTAP)
-	wifi.ap.config({ssid="WSENSE"})
-	wifi.ap.setip(cfg)
-	print(wifi.ap.getip()) -- Dynamic IP Address
-	srv=net.createServer(net.TCP,3)
-	srv:listen(80,function(conn)
-		conn:on("receive", function(client,request)
-			_GET = {}
-			local a, b, args = string.find(request, "foo=bar&(.*)");
-			if (args ~= nil)then
-				for k, v in string.gmatch(args, "(%w+)=(-?%w+)&*") do
-					_GET[k] = v
-					file.open(k,"w")
-					file.write(v)
-					file.close()
-					--print(k..":"..v)
-				end
-				--args = "$$"..args;
-				--print(args)
-				-- find equation offset and slope
-				-- Y = X*m + T
+  wifi.setmode(wifi.SOFTAP)
+  wifi.ap.config({ssid="WSENSE"})
+  wifi.ap.setip(cfg)
+  print(wifi.ap.getip()) -- Dynamic IP Address
+  srv=net.createServer(net.TCP,3)
+  srv:listen(80,function(conn)
+    conn:on("receive", function(client,request)
+      _GET = {}
+      local a, b, args = string.find(request, "foo=bar&(.*)");
+      if (args ~= nil)then
+        for k, v in string.gmatch(args, "(%w+)=(-?%w+)&*") do
+          _GET[k] = v
+          file.open(k,"w")
+          file.write(v)
+          file.close()
+          --print(k..":"..v)
+        end
+        --args = "$$"..args;
+        --print(args)
+        -- find equation offset and slope
+        -- Y = X*m + T
         slope = (_GET['cal1a'] - _GET['cal2a'])/(_GET['cal1b'] - _GET['cal2b'])
         offset = _GET['cal1a'] - _GET['cal1b']*slope
         file.open("SLOPE","w")
@@ -102,12 +102,12 @@ function htmlServerInit()
           file.close()
         end
       end
-			-- calculate new converted value and send page
-			fpage = string.format(html_p,lastdata*slope+offset,lastdata,0,0,0,0)
-			client:send(fpage)
-			collectgarbage();
-		end)
-	end)
+      -- calculate new converted value and send page
+      fpage = string.format(html_p,lastdata*slope+offset,lastdata,0,0,0,0)
+      client:send(fpage)
+      collectgarbage();
+    end)
+  end)
 end
 
 
@@ -185,69 +185,69 @@ function get_time()
 end
 
 function wsense_setup()
-	local go_flag = true
-	-- I2C/RTC setup
-	i2c.setup(id, sda, scl, i2c.SLOW)
-	-- SD control functions
-	spi.setup(1, spi.MASTER, spi.CPOL_LOW, spi.CPHA_LOW, 8, 8)
-	-- then mount the sd
-	-- note: the card initialization process during `file.mount()` will set spi divider temporarily to 200 (400 kHz)
-	-- it's reverted back to the current user setting before `file.mount()` finishes
-	vol = file.mount("/SD0", 8)   -- 2nd parameter is optional for non-standard SS/CS pin
-	if not vol then
-		print("retry mounting")
-		vol = file.mount("/SD0", 8)
-		if not vol then
-			-- TODO: add a retry counter and a restart().(failed X times, do idle 4ver.
-			--error("mount failed")
-			go_flag = false
-		end
-	end
-	return go_flag
+  local go_flag = true
+  -- I2C/RTC setup
+  i2c.setup(id, sda, scl, i2c.SLOW)
+  -- SD control functions
+  spi.setup(1, spi.MASTER, spi.CPOL_LOW, spi.CPHA_LOW, 8, 8)
+  -- then mount the sd
+  -- note: the card initialization process during `file.mount()` will set spi divider temporarily to 200 (400 kHz)
+  -- it's reverted back to the current user setting before `file.mount()` finishes
+  vol = file.mount("/SD0", 8)   -- 2nd parameter is optional for non-standard SS/CS pin
+  if not vol then
+    print("retry mounting")
+    vol = file.mount("/SD0", 8)
+    if not vol then
+      -- TODO: add a retry counter and a restart().(failed X times, do idle 4ver.
+      --error("mount failed")
+      go_flag = false
+    end
+  end
+  return go_flag
 end
 
 function wsense_init()
-	local go_flag = true
-	if wsense_setup() == false then
+  local go_flag = true
+  if wsense_setup() == false then
     error("HW setup failed")
     go_flag = false
   end
-	-- init program
-	-- load variables
-	-- check config files
-	-- PREFIX config file
-	f = file.open("PREFIX")
-	if not f then
-		print("PREFIX file not found")
-		prefix = ""
-		go_flag = false
-	else
-		prefix = trim(file.read())
-		file.close()
-	end
-	--NEXTINDEX config file
-	f = file.open("NEXTINDEX")
-	if not f then
-		print("Creating NEW NEXTINDEX file")
-		f = file.open("NEXTINDEX","w")
-		file.writeline('1')
-		file.close()
-		index = "0"
-	else
-		index = trim(file.read())
-		file.close()
-		file.open("NEXTINDEX","w")
-		local tmp = index + 1
-		file.writeline(string.format("%d",tmp))
-		file.close()
-	end
+  -- init program
+  -- load variables
+  -- check config files
+  -- PREFIX config file
+  f = file.open("PREFIX")
+  if not f then
+    print("PREFIX file not found")
+    prefix = ""
+    go_flag = false
+  else
+    prefix = trim(file.read())
+    file.close()
+  end
+  --NEXTINDEX config file
+  f = file.open("NEXTINDEX")
+  if not f then
+    print("Creating NEW NEXTINDEX file")
+    f = file.open("NEXTINDEX","w")
+    file.writeline('1')
+    file.close()
+    index = "0"
+  else
+    index = trim(file.read())
+    file.close()
+    file.open("NEXTINDEX","w")
+    local tmp = index + 1
+    file.writeline(string.format("%d",tmp))
+    file.close()
+  end
 
-	-- THIS IS A BUG, W/O THIS PRINT IT BREAKS
-	print('dbg:SD mounted successfully...')
-	rtcnow = get_time()
-	filename = prefix..string.format("%03d",index)..rtcnow
-	print("new file "..filename.." opened")
+  -- THIS IS A BUG, W/O THIS PRINT IT BREAKS
+  print('dbg:SD mounted successfully...')
+  rtcnow = get_time()
+  filename = prefix..string.format("%03d",index)..rtcnow
+  print("new file "..filename.." opened")
 
   htmlServerInit()
-	hx711_start(period)
+  hx711_start(period)
 end

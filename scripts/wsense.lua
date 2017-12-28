@@ -30,7 +30,7 @@ function ls(dir)
 end
 
 function cat(fp)
-  f = file.open(fp,"r")
+  local f = file.open(fp,"r")
   if not f then
     return false
   else
@@ -60,12 +60,13 @@ function htmlServerInit()
     conn:on("receive", function(client,request)
       _GET = {}
       local a, b, args = string.find(request, "foo=bar&(.*)");
+      local tmp
       if (args ~= nil)then
         for k, v in string.gmatch(args, "(%w+)=(-?%w+)&*") do
           _GET[k] = v
-          file.open(k,"w")
-          file.write(v)
-          file.close()
+          tmp = file.open(k,"w")
+          tmp:write(v)
+          tmp:close()
           --print(k..":"..v)
         end
         --args = "$$"..args;
@@ -74,32 +75,32 @@ function htmlServerInit()
         -- Y = X*m + T
         slope = (_GET['cal1a'] - _GET['cal2a'])/(_GET['cal1b'] - _GET['cal2b'])
         offset = _GET['cal1a'] - _GET['cal1b']*slope
-        file.open("SLOPE","w")
-        file.write(slope)
-        file.close()
-        file.open("OFFSET","w")
-        file.write(offset)
-        file.close()
+        tmp = file.open("SLOPE","w")
+        tmp:write(slope)
+        tmp:close()
+        tmp = file.open("OFFSET","w")
+        tmp:write(offset)
+        tmp:close()
       else
-        f = file.open("SLOPE")
+        tmp = file.open("SLOPE")
         if not f then
-          file.open("SLOPE","w")
-          file.write('1')
+          tmp = file.open("SLOPE","w")
+          tmp:write('1')
           slope = '1'
-          file.close()
+          tmp:close()
         else
-          slope = file.read()
-          file.close()
+          slope = tmp:read()
+          tmp:close()
         end
-        f = file.open("OFFSET")
+        tmp = file.open("OFFSET")
         if not f then
-          file.open("OFFSET","w")
-          file.write('0')
+          tmp = file.open("OFFSET","w")
+          tmp:write('0')
           offset = '0'
-          file.close()
+          tmp:close()
         else
-          offset = file.read()
-          file.close()
+          offset = tmp:read()
+          tmp:close()
         end
       end
       -- calculate new converted value and send page
@@ -117,9 +118,9 @@ lastdata = 0
 function hx711_resume(period) --miliseconds
   tmr.alarm(tmr_id, period, 1, function()
     lastdata = hx711.read(0)
-    file.open("/SD0/"..filename,"a+")
-    file.writeline(string.format("0x%x",lastdata))
-    file.close()
+    local f = file.open("/SD0/"..filename,"a+")
+    f:writeline(string.format("0x%x",lastdata))
+    f:close()
     print(string.format("0x%02x",lastdata)..string.format(" - %d",lastdata))
     end)
 end
@@ -216,30 +217,30 @@ function wsense_init()
   -- load variables
   -- check config files
   -- PREFIX config file
-  f = file.open("PREFIX")
+  local f = file.open("PREFIX")
   if not f then
     print("PREFIX file not found")
     prefix = ""
     go_flag = false
   else
-    prefix = trim(file.read())
-    file.close()
+    prefix = trim(f:read())
+    f:close()
   end
   --NEXTINDEX config file
   f = file.open("NEXTINDEX")
   if not f then
     print("Creating NEW NEXTINDEX file")
     f = file.open("NEXTINDEX","w")
-    file.writeline('1')
-    file.close()
+    f:writeline('1')
+    f:close()
     index = "0"
   else
-    index = trim(file.read())
-    file.close()
-    file.open("NEXTINDEX","w")
+    index = trim(f:read())
+    f:close()
+    f = file.open("NEXTINDEX","w")
     local tmp = index + 1
-    file.writeline(string.format("%d",tmp))
-    file.close()
+    f:writeline(string.format("%d",tmp))
+    f:close()
   end
 
   -- THIS IS A BUG, W/O THIS PRINT IT BREAKS

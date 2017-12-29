@@ -49,7 +49,7 @@ function htmlServerInit()
       netmask="255.255.255.0",
       gateway="192.168.1.1"
   }
-  html_p = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><title>Status</title></head><body><h1>Current Load (in converted|RAW): %d|%d </h1><form action="" method="post"><table><tr><td><button name="foo" value="bar">Calibrate</button></td></tr><tr><td>Point A:</td><td><input type="text" name="cal1a" value="%d"></td><td><input type="text" name="cal1b" value="%d"></td></tr><tr><td>Point B:</td><td><input type="text" name="cal2a" value="%d"></td><td><input type="text" name="cal2b" value="%d"></td></tr></table></form></body></html>'
+  html_p = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><title>Status</title></head><body><h1>Current Load (in miligrams|RAW): %d|%d </h1><form action="" method="post"><table><tr><td><button name="foo" value="bar">Calibrate</button></td></tr><tr><td></td><td>miligrams(mg)</td><td>Raw Value</td></tr><tr><td>Point #1:</td><td><input type="text" name="cal1a" value="%d"></td><td><input type="text" name="cal1b" value="%d"></td></tr><tr><td>Point #2:</td><td><input type="text" name="cal2a" value="%d"></td><td><input type="text" name="cal2b" value="%d"></td></tr></table></form></body></html>'
 
   wifi.setmode(wifi.SOFTAP)
   wifi.ap.config({ssid="WSENSE"})
@@ -61,6 +61,7 @@ function htmlServerInit()
       _GET = {}
       local a, b, args = string.find(request, "foo=bar&(.*)");
       local tmp
+      local slope, offset, cal1a, cal1b, cal2a, cal2b
       if (args ~= nil)then
         for k, v in string.gmatch(args, "(%w+)=(-?%w+)&*") do
           _GET[k] = v
@@ -71,40 +72,71 @@ function htmlServerInit()
         end
         --args = "$$"..args;
         --print(args)
-        -- find equation offset and slope
-        -- Y = X*m + T
-        slope = (_GET['cal1a'] - _GET['cal2a'])/(_GET['cal1b'] - _GET['cal2b'])
-        offset = _GET['cal1a'] - _GET['cal1b']*slope
-        tmp = file.open("SLOPE","w")
-        tmp:write(slope)
+        cal1a = _GET['cal1a']
+        cal1b = _GET['cal1b']
+        cal2a = _GET['cal2a']
+        cal2b = _GET['cal2b']
+        tmp = file.open("cal1a","w")
+        tmp:write(cal1a)
         tmp:close()
-        tmp = file.open("OFFSET","w")
-        tmp:write(offset)
+        tmp = file.open("cal1b","w")
+        tmp:write(cal1b)
+        tmp:close()
+        tmp = file.open("cal2a","w")
+        tmp:write(cal2a)
+        tmp:close()
+        tmp = file.open("cal2b","w")
+        tmp:write(cal2b)
         tmp:close()
       else
-        tmp = file.open("SLOPE")
-        if not f then
-          tmp = file.open("SLOPE","w")
+        -- default page(no param request)
+        tmp = file.open("cal1a")
+        if not tmp then
+          tmp = file.open("cal1a","w")
           tmp:write('1')
-          slope = '1'
+          cal1a = '1'
           tmp:close()
         else
-          slope = tmp:read()
+          cal1a = tmp:read()
           tmp:close()
         end
-        tmp = file.open("OFFSET")
-        if not f then
-          tmp = file.open("OFFSET","w")
-          tmp:write('0')
-          offset = '0'
+        tmp = file.open("cal1b")
+        if not tmp then
+          tmp = file.open("cal1b","w")
+          tmp:write('1')
+          cal1b = '1'
           tmp:close()
         else
-          offset = tmp:read()
+          cal1b = tmp:read()
+          tmp:close()
+        end
+        tmp = file.open("cal2a")
+        if not tmp then
+          tmp = file.open("cal2a","w")
+          tmp:write('2')
+          cal2a = '2'
+          tmp:close()
+        else
+          cal2a = tmp:read()
+          tmp:close()
+        end
+        tmp = file.open("cal2b")
+        if not tmp then
+          tmp = file.open("cal2b","w")
+          tmp:write('2')
+          cal2b = '2'
+          tmp:close()
+        else
+          cal2b = tmp:read()
           tmp:close()
         end
       end
       -- calculate new converted value and send page
-      fpage = string.format(html_p,lastdata*slope+offset,lastdata,0,0,0,0)
+      -- find equation offset and slope
+      -- Y = X*m + T
+      slope = (cal1a - cal2a)/(cal1b - cal2b)
+      offset = cal1a - cal1b * slope
+      fpage = string.format(html_p,lastdata*slope+offset,lastdata,cal1a,cal1b,cal2a,cal2b)
       client:send(fpage)
       collectgarbage();
     end)

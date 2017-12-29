@@ -49,7 +49,7 @@ function htmlServerInit()
       netmask="255.255.255.0",
       gateway="192.168.1.1"
   }
-  html_p = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><title>Status</title></head><body><h1>Current Load (in miligrams|RAW): %d|%d </h1><form action="" method="post"><table><tr><td><button name="foo" value="bar">Calibrate</button></td></tr><tr><td></td><td>miligrams(mg)</td><td>Raw Value</td></tr><tr><td>Point #1:</td><td><input type="text" name="cal1a" value="%d"></td><td><input type="text" name="cal1b" value="%d"></td></tr><tr><td>Point #2:</td><td><input type="text" name="cal2a" value="%d"></td><td><input type="text" name="cal2b" value="%d"></td></tr></table></form></body></html>'
+  html_p = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><title>Status</title><script language="Javascript">function clock(){var time=new Date(),year=time.getFullYear()-2000,month=time.getMonth()+1,day=time.getDate(),hours=time.getHours(),mins=time.getMinutes(),secs=time.getSeconds();document.getElementById("clk").value = harold(year) + "/" + harold(month) + "/" + harold(day) + "-" + harold(hours) + ":" + harold(mins) + ":" + harold(secs);function harold(standIn) {if(standIn < 10) {standIn="0"+standIn}return standIn;}}setInterval(clock, 1000)</script></head><body><h1>Current Load (in miligrams|RAW): %d|%d </h1><form action="" method="post"><table border="1"><tr><td><button name="foo" value="bar">Calibrate</button></td><td>miligrams(mg)</td><td>Raw Value</td></tr><tr><td>Point #1:</td><td><input type="text" name="cal1a" value="%d"></td><td><input type="text" name="cal1b" value="%d"></td></tr><tr><td>Point #2:</td><td><input type="text" name="cal2a" value="%d"></td><td><input type="text" name="cal2b" value="%d"></td></tr></table></form><form action="" method="post"><p><table border="1"><tr><td>Old Time:</td><td>%s</td></tr><tr><td>New(Browser) Time:</td><td><input id="clk" readonly="true" type="text" name="time"></td><td><button name="ti" value="me">Update Time?</button></td></tr></table></form></body></html>'
 
   wifi.setmode(wifi.SOFTAP)
   wifi.ap.config({ssid="WSENSE"})
@@ -136,7 +136,7 @@ function htmlServerInit()
       -- Y = X*m + T
       slope = (cal1a - cal2a)/(cal1b - cal2b)
       offset = cal1a - cal1b * slope
-      fpage = string.format(html_p,lastdata*slope+offset,lastdata,cal1a,cal1b,cal2a,cal2b)
+      fpage = string.format(html_p,lastdata*slope+offset,lastdata,cal1a,cal1b,cal2a,cal2b,"temporal")
       client:send(fpage)
       collectgarbage();
     end)

@@ -89,6 +89,26 @@ function htmlServerInit()
         tmp:write(cal2b)
         tmp:close()
       else
+        -- detect time synchro request
+        local a, b, args = string.find(request, "time=(.*)");
+        if (args ~= nil)then
+          -- parse HTML special char('/',':', time=17%2F12%2F29-07%3A42%3A06&ti=me)
+          args  = args:gsub("%%2F","|")
+          args  = args:gsub("%%3A","|")
+          args  = args:gsub("-","|")
+          local i = 0
+          for k in string.gmatch(args, "%d+") do
+            _GET[i] = k
+            i=i+1
+          end
+          local year = _GET[0]
+          local mon = _GET[1]
+          local date = _GET[2]
+          local hour = _GET[3]
+          local min = _GET[4]
+          local sec = _GET[5]
+          set_time(("0x"..year)+0,("0x"..mon)+0,("0x"..date)+0,("0x"..hour)+0,("0x"..min)+0,("0x"..sec)+0)
+        end
         -- default page(no param request)
         tmp = file.open("cal1a")
         if not tmp then
@@ -136,7 +156,8 @@ function htmlServerInit()
       -- Y = X*m + T
       slope = (cal1a - cal2a)/(cal1b - cal2b)
       offset = cal1a - cal1b * slope
-      fpage = string.format(html_p,lastdata*slope+offset,lastdata,cal1a,cal1b,cal2a,cal2b,"temporal")
+      local newdata = lastdata*slope+offset
+      fpage = string.format(html_p,newdata,lastdata,cal1a,cal1b,cal2a,cal2b,get_time_pretty())
       client:send(fpage)
       collectgarbage();
     end)

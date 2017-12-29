@@ -208,6 +208,7 @@ end
 
 -- I2C/RTC: get time from RTC
 function get_time()
+  local year, mon, date, hour, min, sec
   year = string.format("%02x",string.byte(read_reg(rtc_addr,0x06)))
   mon  = string.format("%02x",string.byte(read_reg(rtc_addr,0x05)))
   date = string.format("%02x",string.byte(read_reg(rtc_addr,0x04)))
@@ -216,6 +217,19 @@ function get_time()
   sec  = string.format("%02x",string.byte(read_reg(rtc_addr,0x00)))
   return mon..date..hour..min
 end
+
+-- I2C/RTC: get time from RTC (formatted)
+function get_time_pretty()
+  local year, mon, date, hour, min, sec
+  year = string.format("%02x",string.byte(read_reg(rtc_addr,0x06)))
+  mon  = string.format("%02x",string.byte(read_reg(rtc_addr,0x05)))
+  date = string.format("%02x",string.byte(read_reg(rtc_addr,0x04)))
+  hour = string.format("%02x",string.byte(read_reg(rtc_addr,0x02)))
+  min  = string.format("%02x",string.byte(read_reg(rtc_addr,0x01)))
+  sec  = string.format("%02x",string.byte(read_reg(rtc_addr,0x00)))
+  return year.."/"..mon.."/"..date.."-"..hour..":"..min..":"..sec
+end
+
 
 function wsense_setup()
   local go_flag = true
